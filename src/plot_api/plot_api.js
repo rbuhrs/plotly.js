@@ -2619,7 +2619,7 @@ Plotly.transition = function(gd, data, layout, traceIndices, transitionConfig) {
 
     function executeCallbacks(list) {
         var p = Promise.resolve();
-        if (!list) return p;
+        if(!list) return p;
         while(list.length) {
             p = p.then((list.shift()));
         }
@@ -2627,14 +2627,14 @@ Plotly.transition = function(gd, data, layout, traceIndices, transitionConfig) {
     }
 
     function flushCallbacks(list) {
-        if (!list) return;
+        if(!list) return;
         while(list.length) {
             list.shift();
         }
     }
 
-    var restyleList = [];
     function executeTransitions() {
+        var traceTransitionConfig;
         var hasTraceTransition = false;
         var j;
         var basePlotModules = fullLayout._basePlotModules;
@@ -2656,6 +2656,17 @@ Plotly.transition = function(gd, data, layout, traceIndices, transitionConfig) {
             }
         }
 
+        if(hasAxisTransition) {
+            traceTransitionConfig = Lib.extendFlat({}, transitionConfig);
+            traceTransitionConfig.duration = 0;
+        } else {
+            traceTransitionConfig = transitionConfig;
+        }
+
+        for(j = 0; j < basePlotModules.length; j++) {
+            basePlotModules[j].plot(gd, transitionedTraces, traceTransitionConfig);
+        }
+
         gd._transitionData._completionTimeout = setTimeout(completeTransition, transitionConfig.duration);
 
         if(!hasAxisTransition && !hasTraceTransition) {
@@ -2672,7 +2683,7 @@ Plotly.transition = function(gd, data, layout, traceIndices, transitionConfig) {
     }
 
     function interruptPreviousTransitions() {
-        if (gd._transitionData._completionTimeout) {
+        if(gd._transitionData._completionTimeout) {
             // Prevent the previous completion from occurring:
             clearTimeout(gd._transitionData._completionTimeout);
             gd._transitionData._completionTimeout = null;
