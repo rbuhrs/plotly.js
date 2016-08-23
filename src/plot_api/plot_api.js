@@ -2673,6 +2673,9 @@ Plotly.transition = function(gd, data, layout, traceIndices, transitionConfig) {
             basePlotModules[j].plot(gd, transitionedTraces, traceTransitionConfig, makeCallback);
         }
 
+        // If nothing else creates a callback, then this will trigger the completion in the next tick:
+        setTimeout(makeCallback());
+
         if(!hasAxisTransition && !hasTraceTransition) {
             return false;
         }
