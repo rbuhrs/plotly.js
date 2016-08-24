@@ -2545,7 +2545,7 @@ Plotly.transition = function(gd, data, layout, traceIndices, transitionConfig) {
     // Select which traces will be updated:
     if(isNumeric(traceIndices)) traceIndices = [traceIndices];
     else if(!Array.isArray(traceIndices) || !traceIndices.length) {
-        traceIndices = gd._fullData.map(function(v, i) {return i;});
+        traceIndices = gd.data.map(function(v, i) { return i; });
     }
 
     if(traceIndices.length > dataLength) {
@@ -2585,8 +2585,6 @@ Plotly.transition = function(gd, data, layout, traceIndices, transitionConfig) {
         // supplyDefaults even though it's heavier than would otherwise be desired for
         // transitions:
         Plots.supplyDefaults(gd);
-
-        //Plotly.Axes.saveRangeInitial(gd, true);
 
         // This step fies the .xaxis and .yaxis references that otherwise
         // aren't updated by the supplyDefaults step:
@@ -2690,12 +2688,12 @@ Plotly.transition = function(gd, data, layout, traceIndices, transitionConfig) {
                 return Plotly.redraw(gd);
             }
         }).then(function() {
-            gd.emit('plotly_endtransition', []);
+            gd.emit('plotly_transitioned', []);
         });
     }
 
     function interruptPreviousTransitions() {
-        gd.emit('plotly_interrupttransition', []);
+        gd.emit('plotly_transitioninterrupted', []);
 
         return executeCallbacks(gd._transitionData._interruptCallbacks);
     }
@@ -2713,24 +2711,17 @@ Plotly.transition = function(gd, data, layout, traceIndices, transitionConfig) {
             for(var ai in data[i]) {
                 thisUpdate[ai] = [data[i][ai]];
             }
-
-            /*restyleList.push((function(md, data, traces) {
-                return function() {
-                    return Plotly.restyle(gd, data, traces);
-                };
-            }(module, thisUpdate, [traceIdx])));*/
         }
     }
 
     var seq = [Plots.previousPromises, interruptPreviousTransitions, prepareTransitions, executeTransitions];
-    //seq = seq.concat(restyleList);
 
     var plotDone = Lib.syncOrAsync(seq, gd);
 
     if(!plotDone || !plotDone.then) plotDone = Promise.resolve();
 
     return plotDone.then(function() {
-        gd.emit('plotly_begintransition', []);
+        gd.emit('plotly_transitioning', []);
         return gd;
     });
 };
