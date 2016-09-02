@@ -2461,10 +2461,10 @@ Plotly.relayout = function relayout(gd, astr, val) {
  *
  * @param {string} name
  *      name of the keyframe to create
- * @param {object} transitionOpts
- *      configuration for transition
+ * @param {object} animationOpts
+ *      configuration for animation
  */
-Plotly.animate = function(gd, frameOrGroupNameOrFrameList, transitionOpts, animationOpts) {
+Plotly.animate = function(gd, frameOrGroupNameOrFrameList, animationOpts) {
     gd = getGraphDiv(gd);
     var trans = gd._transitionData;
 
@@ -2475,6 +2475,8 @@ Plotly.animate = function(gd, frameOrGroupNameOrFrameList, transitionOpts, anima
     }
 
     animationOpts = Plots.supplyAnimationDefaults(animationOpts);
+    var transitionOpts = animationOpts.transition;
+    var frameOpts = animationOpts.frame;
 
     // Since frames are popped immediately, an empty queue only means all frames have
     // *started* to transition, not that the animation is complete. To solve that,
@@ -2493,6 +2495,18 @@ Plotly.animate = function(gd, frameOrGroupNameOrFrameList, transitionOpts, anima
             }
         } else {
             return transitionOpts;
+        }
+    }
+
+    function getFrameOpts(i) {
+        if(Array.isArray(frameOpts)) {
+            if(i >= frameOpts.length) {
+                return frameOpts[0];
+            } else {
+                return frameOpts[i];
+            }
+        } else {
+            return frameOpts;
         }
     }
 
@@ -2523,12 +2537,11 @@ Plotly.animate = function(gd, frameOrGroupNameOrFrameList, transitionOpts, anima
                     computedFrame = frameList[i].frame;
                 }
 
-                var opts = Plots.supplyTransitionDefaults(getTransitionOpts(i));
-
                 var nextFrame = {
                     frame: computedFrame,
                     name: frameList[i].name,
-                    transitionOpts: opts
+                    frameOpts: getFrameOpts(i),
+                    transitionOpts: getTransitionOpts(i)
                 };
 
                 if(i === frameList.length - 1) {
@@ -2560,12 +2573,13 @@ Plotly.animate = function(gd, frameOrGroupNameOrFrameList, transitionOpts, anima
 
             if(newFrame) {
                 trans._lastframeat = Date.now();
-                trans._timetonext = newFrame.transitionOpts.frameduration;
+                trans._timetonext = newFrame.frameOpts.duration;
 
                 Plots.transition(gd,
                     newFrame.frame.data,
                     newFrame.frame.layout,
                     newFrame.frame.traces,
+                    newFrame.frameOpts,
                     newFrame.transitionOpts
                 ).then(function() {
                     if(trans._frameQueue.length === 0) {
