@@ -2558,7 +2558,7 @@ Plotly.animate = function(gd, frameOrGroupNameOrFrameList, animationOpts) {
         }
 
         function stopAnimationLoop() {
-            cancelAnimationFrame(trans._animationRaf);
+            window.cancelAnimationFrame(trans._animationRaf);
             trans._animationRaf = null;
         }
 
@@ -2612,7 +2612,7 @@ Plotly.animate = function(gd, frameOrGroupNameOrFrameList, animationOpts) {
                     nextFrame();
                 }
 
-                trans._animationRaf = requestAnimationFrame(doFrame);
+                trans._animationRaf = window.requestAnimationFrame(doFrame);
             };
 
             return doFrame();
